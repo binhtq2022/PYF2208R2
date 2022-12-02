@@ -155,7 +155,11 @@ def main_window():
 		material_stock_entry.delete(0, 'end')
 		material_unit_entry.delete(0, 'end')
 		material_loc_entry.delete(0, 'end')
+		img_path_entry['state'] = NORMAL
 		img_path_entry.delete(0, 'end')
+		img_path_entry['state'] = DISABLED
+		
+		
 
 
 	def add_btn_click():
@@ -179,20 +183,12 @@ def main_window():
 			file_name = "./IMG_DATA/"+material_code_entry.get()+".png"
 
 			img1.save(file_name)
-			
-
-			material_code_entry.delete(0, 'end')
-			material_name_entry.delete(0, 'end')
-			material_stock_entry.delete(0, 'end')
-			material_unit_entry.delete(0, 'end')
-			material_loc_entry.delete(0, 'end')
+	
+			messagebox.showinfo('Material adding', 'Added successfuly!')
 			img_path_entry['state'] = NORMAL
 			img_path_entry.delete(0,'end')
 			img_path_entry['state'] = DISABLED
-
-
-
-			messagebox.showinfo('Material adding', 'Added successfuly!')
+			reset_btn_click()
 
 	def search_btn_click():
 		condition  = search_condition_cb.get()
@@ -256,10 +252,10 @@ def main_window():
 			material_unit_entry.insert(0,record[3])
 			material_loc_entry.insert(0,record[4])
 			material_code_entry['state'] = DISABLED
-			add_btn['state'] = DISABLED
-			export_btn['state']  = NORMAL
-			update_btn['state']  = NORMAL
-			delete_btn['state'] = NORMAL
+			add_btn.place_forget()
+			export_btn.place(x = 40, y = 195)
+			update_btn.place(x = 130, y = 195)
+			delete_btn.place(x = 220, y = 195)
 			img_show.configure(image="")
 			img_show.image=""
 			path = "./IMG_DATA/"+ record[0]+".png"
@@ -282,6 +278,7 @@ def main_window():
 			
 	
 	def update_btn_click():
+		
 		for item in result_table.get_children():
 			result_table.delete(item)
 		for i in range (len(list_material)):
@@ -290,9 +287,20 @@ def main_window():
 				list_material[i].material_stock = material_stock_entry.get()
 				list_material[i].material_unit = material_unit_entry.get()
 				list_material[i].material_location = material_loc_entry.get()
+				
+				path = img_path_entry.get()
+				print(path)
+				img1 = Image.open(path)
+				img1 = img1.resize((295,155))
+				file_name = "./IMG_DATA/"+material_code_entry.get()+".png"
+				
 				write_csv()
 				reset_btn_click()
 				search_btn_click()
+				
+				
+
+				img1.save(file_name)
 				messagebox.showinfo('Update',f'{material_code_entry.get()} updated successfuly!')
 				break
 	def delete_btn_click():
@@ -317,11 +325,11 @@ def main_window():
 			f.close()
 
 	def reset_btn_click():
-		add_btn['state'] = NORMAL
-		export_btn['state']  = DISABLED
-		update_btn['state']  = DISABLED
-		delete_btn['state']  = DISABLED
-		material_code_entry['state'] = NORMAL
+		add_btn.place(x = 140, y = 195)
+		export_btn.place_forget()
+		update_btn.place_forget()
+		delete_btn.place_forget()
+		material_code_entry['state'] = NORMAL	
 		for item in result_table.get_children():
 			result_table.delete(item)
 		
@@ -399,6 +407,7 @@ def main_window():
 			
 		if o:
 			img_path_entry['state'] = NORMAL
+			img_path_entry.delete(0,'end')
 			img_path_entry.insert(0, o)
 			img_path_entry['state'] = DISABLED
 			path = str(o)
@@ -415,71 +424,71 @@ def main_window():
 	main_fm = Frame(login_wd, width = 900, height = 430, bg = "#f5f5f5")
 	main_fm.place(x = 0, y = 0)
 
-	info_fm = LabelFrame(login_wd, text = "  Information  ", width = 320, height = 410, bg = "#f2b1f9", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
+	info_fm = LabelFrame(login_wd, text = "  Information  ", width = 320, height = 410, bg = "#E3D5FF", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
 	info_fm.place(x = 10, y = 10)
 
-	Label(info_fm, text = "MC code", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 10)
+	Label(info_fm, text = "MC code", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 10)
 	material_code_entry = Entry(info_fm, border = 1)
 	material_code_entry.place(x = 110, y = 10, width = 200)
 
-	Label(info_fm, text = "Material Name", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 40)
+	Label(info_fm, text = "Material Name", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 40)
 	material_name_entry = Entry(info_fm, border = 1)
 	material_name_entry.place(x = 110, y = 40, width = 200)
 
-	Label(info_fm, text = "Stock", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 70)
+	Label(info_fm, text = "Stock", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 70)
 	material_stock_entry = Entry(info_fm, border = 1)
 	material_stock_entry.place(x = 110, y = 70, width = 200)
 
-	Label(info_fm, text = "Unit", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 100)
+	Label(info_fm, text = "Unit", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 100)
 	material_unit_entry = Entry(info_fm, border = 1)
 	material_unit_entry.place(x = 110, y = 100, width = 200)
 
-	Label(info_fm, text = "Location", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 130)
+	Label(info_fm, text = "Location", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 130)
 	material_loc_entry = Entry(info_fm, border = 1)
 	material_loc_entry.place(x = 110, y = 130, width = 200)
 
-	Label(info_fm, text = "Image", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 160)
+	Label(info_fm, text = "Image", fg = "#0000CC", bg = '#E3D5FF', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 160)
 	img_path_entry = Entry(info_fm, border = 1)
 	img_path_entry.place(x = 110, y = 160, width = 120)
 	img_path_entry['state'] = DISABLED
 
-	add_btn = Button(info_fm, text = "Add", width = 8, bg = '#25eb9b', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = add_btn_click)
-	add_btn.place(x = 10, y = 195)
+	add_btn = Button(info_fm, text = "Add", width = 8, bg = '#336600', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = add_btn_click)
+	add_btn.place(x = 140, y = 195)
 
-	update_btn = Button(info_fm, text = "Update", width = 8, bg = '#d99245', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = update_btn_click)
+	update_btn = Button(info_fm, text = "Update", width = 8, bg = '#381EF6', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = update_btn_click)
 	update_btn.place(x = 85, y = 195)
-	update_btn['state']  = DISABLED
+	update_btn.place_forget()
 
-	export_btn = Button(info_fm, text = "Export", width = 8, bg = '#ddec00', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'),command = export_btn_click)
+	export_btn = Button(info_fm, text = "Export", width = 8, bg = '#381EF6', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'),command = export_btn_click)
 	export_btn.place(x = 240, y = 195)
-	export_btn['state']  = DISABLED
+	export_btn.place_forget()
 	
-	delete_btn = Button(info_fm, text = "Delete", width = 8, bg = 'red', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'),command = delete_btn_click)
+	delete_btn = Button(info_fm, text = "Delete", width = 8, bg = 'red', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'),command = delete_btn_click)
 	delete_btn.place(x = 162, y = 195)
-	delete_btn['state']  = DISABLED
+	delete_btn.place_forget()
 
 	search_fm = LabelFrame(login_wd, text = "  Search  ", width = 540, height = 410, bg = "#a4f6bf", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
 	search_fm.place(x = 350, y = 10)
 
-	search_btn = Button(search_fm, text = "Search", width = 10, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = search_btn_click)
+	search_btn = Button(search_fm, text = "Search", width = 10, bg = '#381EF6', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = search_btn_click)
 	search_btn.place(x = 10, y = 40)
 
-	reset_btn = Button(search_fm, text = "Reset", width = 10, bg = 'red', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = reset_btn_click)
+	reset_btn = Button(search_fm, text = "Clear all", width = 10, bg = 'red', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = reset_btn_click)
 	reset_btn.place(x = 120, y = 40)
 
 	search_entry = Entry(search_fm,border = 1)
 	search_entry.place(x = 10, y = 10, width = 200)
 
-	export_file_btn = Button(search_fm, text = "Export All To Excel", width = 15, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = export_file_btn_click)
-	export_file_btn.place(x = 300, y = 50)
+	export_file_btn = Button(search_fm, text = "Export All To Excel", width = 15, bg = '#381EF6', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = export_file_btn_click)
+	export_file_btn.place(x = 400, y = 45)
 
-	browser_path_btn = Button(info_fm, text = "Browser", width = 8, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = browser_path_btn_click)
+	browser_path_btn = Button(info_fm, text = "Browser", width = 8, bg = '#FF9900', fg = 'white', border = 1, font = ('Tahoma', 9, 'bold'), command = browser_path_btn_click)
 	browser_path_btn.place(x = 240, y = 160)
 
-	img_show = Label(info_fm, image = None, border = 0, bg = "#f2b1f9")
+	img_show = Label(info_fm, image = None, border = 0, bg = "#E3D5FF")
 	img_show.place(x = 10, y = 225)		
 
-	Label(search_fm, text = "Search by: ", fg = "black", bg = '#a4f6bf', font = ('Tahoma', 9, 'bold')).place(x = 240, y = 10)
+	Label(search_fm, text = "Search by: ", fg = "#0E02FE", bg = '#a4f6bf', font = ('Tahoma', 9, 'bold')).place(x = 240, y = 10)
 	search_condition_cb = ttk.Combobox(search_fm, width = 20, state= "readonly")
 	search_condition_cb['values'] = ('MC code', 'Material name', 'Location')
 	search_condition_cb.place(x = 320, y = 10)
