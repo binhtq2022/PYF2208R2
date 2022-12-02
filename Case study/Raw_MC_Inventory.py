@@ -2,7 +2,9 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
 import csv
+from PIL import Image, ImageTk
 from tkinter.filedialog import asksaveasfile
+from tkinter.filedialog import askopenfilename
 
 
 class Account:
@@ -13,12 +15,13 @@ class Material:
 	def __init__(self, code, name, quantity, unit, location):
 		self.material_code = code
 		self.material_name = name
-		self.material_stock = quantity
+		self.material_stock = int(quantity)
 		self.material_unit = unit
 		self.material_location = location
 
 list_account = []
 list_material = []
+list_img_file = []
 
 with open('user.csv', 'r') as f:
 	reader = csv.reader(f)
@@ -152,10 +155,12 @@ def main_window():
 		material_stock_entry.delete(0, 'end')
 		material_unit_entry.delete(0, 'end')
 		material_loc_entry.delete(0, 'end')
+		img_path_entry.delete(0, 'end')
+
 
 	def add_btn_click():
 		list_code = [item.material_code for item in list_material]
-		if material_code_entry.get() == '' or material_name_entry.get() == '' or material_stock_entry.get() == '' or material_unit_entry.get() == '' or material_loc_entry.get() == '':
+		if material_code_entry.get() == '' or material_name_entry.get() == '' or material_stock_entry.get() == '' or material_unit_entry.get() == '' or material_loc_entry.get() == '' or img_path_entry.get() == "":
 			messagebox.showinfo('Mistake', 'Plase full fill data!')
 		elif list_code.count(material_code_entry.get()) > 0:
 			messagebox.showinfo('Mistake', 'MC code have existed')
@@ -165,11 +170,28 @@ def main_window():
 				writer = csv.writer(f)
 				writer.writerow([material_code_entry.get(), material_name_entry.get(), material_stock_entry.get(), material_unit_entry.get(), material_loc_entry.get()])
 				f.close()
+
+
+			path = img_path_entry.get()
+			img1 = Image.open(path)
+			img1 = img1.resize((295,155))
+
+			file_name = "./IMG_DATA/"+material_code_entry.get()+".png"
+
+			img1.save(file_name)
+			
+
 			material_code_entry.delete(0, 'end')
 			material_name_entry.delete(0, 'end')
 			material_stock_entry.delete(0, 'end')
 			material_unit_entry.delete(0, 'end')
 			material_loc_entry.delete(0, 'end')
+			img_path_entry['state'] = NORMAL
+			img_path_entry.delete(0,'end')
+			img_path_entry['state'] = DISABLED
+
+
+
 			messagebox.showinfo('Material adding', 'Added successfuly!')
 
 	def search_btn_click():
@@ -177,24 +199,45 @@ def main_window():
 		exist = False
 		for item in result_table.get_children():
 					result_table.delete(item)
-		if condition == "MC code":
+		text = search_entry.get()
+		if text == "":
+			return
+		elif text == "*":
+			for item in list_material:
+				list_d = [item.material_code,item.material_name, item.material_stock, item.material_unit, item.material_location]
+				result_table.insert('', END, values = list_d)
+		elif text[-1] == "*":
+			text = text.replace("*","")
+			for item in list_material:
+				exist = False
+				if condition == "MC code" and item.material_code.find(text) != -1:
+					exist = True
+				elif condition == "Material name" and item.material_name.find(text) != -1:
+					exist = True
+				elif condition == "Location" and item.material_location.find(text) != -1:
+					exist = True	
+				if exist:
+					list_d = [item.material_code,item.material_name, item.material_stock, item.material_unit, item.material_location]
+					result_table.insert('', END, values = list_d)
+
+		elif condition == "MC code":
 			list_code = [item.material_code for item in list_material]
-			if list_code.count(search_entry.get()) > 0:
-				resutl_index = list_code.index(search_entry.get())
+			if list_code.count(text) > 0:
+				resutl_index = list_code.index(text)
 				list_d = [list_material[resutl_index].material_code,list_material[resutl_index].material_name, list_material[resutl_index].material_stock, list_material[resutl_index].material_unit, list_material[resutl_index].material_location]
 				result_table.insert('', END, values = list_d)
-		if condition == "Material name":
+		elif condition == "Material name":
 			list_name = [item.material_name for item in list_material]
-			if list_name.count(search_entry.get()) > 0:
+			if list_name.count(text) > 0:
 				for item in list_material:
-					if item.material_name == search_entry.get():
+					if item.material_name == text:
 						list_d = [item.material_code,item.material_name, item.material_stock, item.material_unit, item.material_location]
 						result_table.insert('', END, values = list_d)
-		if condition == "Location":
+		elif condition == "Location":
 			list_location = [item.material_location for item in list_material]
-			if list_location.count(search_entry.get()) > 0:
+			if list_location.count(text) > 0:
 				for item in list_material:
-					if item.material_location == search_entry.get():
+					if item.material_location == text:
 						list_d = [item.material_code,item.material_name, item.material_stock, item.material_unit, item.material_location]
 						result_table.insert('', END, values = list_d)
 
@@ -202,10 +245,12 @@ def main_window():
 		
 	def item_selected(event):
 		for selected_item in result_table.selection():
+			material_code_entry['state'] = NORMAL
 			item = result_table.item(selected_item)
 			record = item['values']
 			clear_entry()
 			material_code_entry.insert(0,record[0])
+
 			material_name_entry.insert(0,record[1])
 			material_stock_entry.insert(0,record[2])
 			material_unit_entry.insert(0,record[3])
@@ -215,14 +260,32 @@ def main_window():
 			export_btn['state']  = NORMAL
 			update_btn['state']  = NORMAL
 			delete_btn['state'] = NORMAL
-
+			img_show.configure(image="")
+			img_show.image=""
+			path = "./IMG_DATA/"+ record[0]+".png"
+			try:
+				img1 = Image.open(path)
+				img1 = img1.resize((295,155))
+				img = ImageTk.PhotoImage(img1)
+				img_show.configure(image=img)
+				img_show.image=img
+				img_path_entry['state'] = NORMAL
+				img_path_entry.delete(0, 'end')
+				img_path_entry.insert(0,path)
+				img_path_entry['state'] = DISABLED
+			except:
+				img_path_entry['state'] = NORMAL
+				img_path_entry.delete(0, 'end')
+				img_path_entry.insert(0,"Not found the image")
+				img_path_entry['state'] = DISABLED
+			
+			
 	
 	def update_btn_click():
 		for item in result_table.get_children():
 			result_table.delete(item)
 		for i in range (len(list_material)):
 			if list_material[i].material_code == material_code_entry.get():
-				messagebox.showinfo('Update',f'{material_code_entry.get()} updated successfuly!')
 				list_material[i].material_name = material_name_entry.get()
 				list_material[i].material_stock = material_stock_entry.get()
 				list_material[i].material_unit = material_unit_entry.get()
@@ -230,17 +293,18 @@ def main_window():
 				write_csv()
 				reset_btn_click()
 				search_btn_click()
+				messagebox.showinfo('Update',f'{material_code_entry.get()} updated successfuly!')
 				break
 	def delete_btn_click():
 		for item in result_table.get_children():
 			result_table.delete(item)
 		for i in range (len(list_material)):
 			if list_material[i].material_code == material_code_entry.get():
-				messagebox.showinfo('Delete',f'{material_code_entry.get()} deleteted successfuly!')
 				list_material.pop(i)
 				reset_btn_click()
 				write_csv()
 				search_btn_click()
+				messagebox.showinfo('Delete',f'{material_code_entry.get()} Deleteted successfuly!')
 				break
 
 	def write_csv():
@@ -260,7 +324,12 @@ def main_window():
 		material_code_entry['state'] = NORMAL
 		for item in result_table.get_children():
 			result_table.delete(item)
+		
 		clear_entry()
+		img_show.configure(image="")
+		img_show.image=""
+		
+		
 		
 	def export_btn_click():
 		def export_btn_export_wd_click():
@@ -322,15 +391,31 @@ def main_window():
 					writer.writerow([item.material_code, item.material_name, item.material_stock, item.material_unit, item.material_location])
 			w.close()
 			messagebox.showinfo("Export file", "Exported file successfuly!")
-		
+	def browser_path_btn_click():
+		o = askopenfilename(filetypes = (('PNG','*.png')
+										, ('JPEG', '*jpg, *.jpeg')
+										, ('Bitmap file', '*.bmp')
+										))
 			
-
+		if o:
+			img_path_entry['state'] = NORMAL
+			img_path_entry.insert(0, o)
+			img_path_entry['state'] = DISABLED
+			path = str(o)
+			img1 = Image.open(path)
+			img1 = img1.resize((295,155))
+			img = ImageTk.PhotoImage(img1)
+			img_show.configure(image=img)
+			img_show.image=img
+			login_wd.mainloop()
+		
+				
 	login_wd.title("Raw Material Inventory")
-	login_wd.geometry('900x230')
+	login_wd.geometry('900x430')
 	main_fm = Frame(login_wd, width = 900, height = 430, bg = "#f5f5f5")
 	main_fm.place(x = 0, y = 0)
 
-	info_fm = LabelFrame(login_wd, text = "  Information  ", width = 320, height = 210, bg = "#f2b1f9", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
+	info_fm = LabelFrame(login_wd, text = "  Information  ", width = 320, height = 410, bg = "#f2b1f9", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
 	info_fm.place(x = 10, y = 10)
 
 	Label(info_fm, text = "MC code", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 10)
@@ -353,22 +438,27 @@ def main_window():
 	material_loc_entry = Entry(info_fm, border = 1)
 	material_loc_entry.place(x = 110, y = 130, width = 200)
 
+	Label(info_fm, text = "Image", fg = "black", bg = '#f2b1f9', font = ('Tahoma', 9, 'bold')).place(x = 16, y = 160)
+	img_path_entry = Entry(info_fm, border = 1)
+	img_path_entry.place(x = 110, y = 160, width = 120)
+	img_path_entry['state'] = DISABLED
+
 	add_btn = Button(info_fm, text = "Add", width = 8, bg = '#25eb9b', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = add_btn_click)
-	add_btn.place(x = 10, y = 165)
+	add_btn.place(x = 10, y = 195)
 
 	update_btn = Button(info_fm, text = "Update", width = 8, bg = '#d99245', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = update_btn_click)
-	update_btn.place(x = 85, y = 165)
+	update_btn.place(x = 85, y = 195)
 	update_btn['state']  = DISABLED
 
 	export_btn = Button(info_fm, text = "Export", width = 8, bg = '#ddec00', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'),command = export_btn_click)
-	export_btn.place(x = 240, y = 165)
+	export_btn.place(x = 240, y = 195)
 	export_btn['state']  = DISABLED
 	
 	delete_btn = Button(info_fm, text = "Delete", width = 8, bg = 'red', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'),command = delete_btn_click)
-	delete_btn.place(x = 162, y = 165)
+	delete_btn.place(x = 162, y = 195)
 	delete_btn['state']  = DISABLED
 
-	search_fm = LabelFrame(login_wd, text = "  Search  ", width = 540, height = 210, bg = "#a4f6bf", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
+	search_fm = LabelFrame(login_wd, text = "  Search  ", width = 540, height = 410, bg = "#a4f6bf", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
 	search_fm.place(x = 350, y = 10)
 
 	search_btn = Button(search_fm, text = "Search", width = 10, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = search_btn_click)
@@ -383,6 +473,12 @@ def main_window():
 	export_file_btn = Button(search_fm, text = "Export All To Excel", width = 15, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = export_file_btn_click)
 	export_file_btn.place(x = 300, y = 50)
 
+	browser_path_btn = Button(info_fm, text = "Browser", width = 8, bg = '#57a1f8', fg = 'white', border = 0, font = ('Tahoma', 9, 'bold'), command = browser_path_btn_click)
+	browser_path_btn.place(x = 240, y = 160)
+
+	img_show = Label(info_fm, image = None, border = 0, bg = "#f2b1f9")
+	img_show.place(x = 10, y = 225)		
+
 	Label(search_fm, text = "Search by: ", fg = "black", bg = '#a4f6bf', font = ('Tahoma', 9, 'bold')).place(x = 240, y = 10)
 	search_condition_cb = ttk.Combobox(search_fm, width = 20, state= "readonly")
 	search_condition_cb['values'] = ('MC code', 'Material name', 'Location')
@@ -393,10 +489,10 @@ def main_window():
 	#-------------------------------
 
 	table_fm = LabelFrame(search_fm, text = "  Result  ", bg = "#a4f6bf", bd = 2, relief = RIDGE, font = ('Tahoma', 9, 'bold'))
-	table_fm.place(x = 0, y = 70, width = 535, height = 121)
+	table_fm.place(x = 0, y = 70, width = 535, height = 321)
 
 	scroll_y = Scrollbar(table_fm,orient = VERTICAL)
-	result_table = ttk.Treeview(table_fm, columns = ('code', 'name', 'stock','unit', 'location'), yscrollcommand = scroll_y.set)
+	result_table = ttk.Treeview(table_fm, columns = ('code', 'name', 'stock','unit', 'location'), height = 14, yscrollcommand = scroll_y.set)
 	scroll_y.pack(side = RIGHT, fill = Y)
 	scroll_y.config(command = result_table.yview)
 
